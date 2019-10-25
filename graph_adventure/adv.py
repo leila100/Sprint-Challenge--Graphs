@@ -4,18 +4,18 @@ from world import World
 
 import random
 
-class Stack():
+class Queue():
     def __init__(self):
-        self.stack = []
-    def push(self, value):
-        self.stack.append(value)
-    def pop(self):
+        self.queue = []
+    def enqueue(self, value):
+        self.queue.append(value)
+    def dequeue(self):
         if self.size() > 0:
-            return self.stack.pop()
+            return self.queue.pop(0)
         else:
             return None
     def size(self):
-        return len(self.stack)
+        return len(self.queue)
 
 # Load world
 world = World()
@@ -48,14 +48,13 @@ def find_next_dir(current_room, visited):
         for direction in directions:
             if directions[direction] == '?':
                 possible_dirs.append(direction)
-        print(f"possible directions: {possible_dirs}")
         if len(possible_dirs) != 0:
             travel_dir = random.choice(possible_dirs)
-    # If there's none, it's a dead end
-    if travel_dir is None:
-        print(f"Reached a dead end. current Room: {current_room.id}")
-    else:
-        print(f"from {current_room.id}, next direction is: {travel_dir}")
+    # # If there's none, it's a dead end
+    # if travel_dir is None:
+    #     print(f"Reached a dead end. current Room: {current_room.id}")
+    # else:
+    #     print(f"from {current_room.id}, next direction is: {travel_dir}")
     return travel_dir
 
 def get_path_to_deadend(current_room, visited):
@@ -66,24 +65,52 @@ def get_path_to_deadend(current_room, visited):
         player.travel(next_dir)
         new_room = player.currentRoom
         # save the new room in the current room's directions
-        visited[current_room.id][next_dir] = new_room.id
+        visited[current_room.id][next_dir] = new_room
         # save the current room in the new room's directions
         if new_room.id not in visited:
             new_exits = new_room.getExits()
             directions = {}
             for direction in new_exits:
                 if direction == reverse_dir[next_dir]:
-                    directions[direction] = current_room.id
+                    directions[direction] = current_room
                 else:
                     directions[direction] = '?'
             visited[new_room.id] = directions
         else:
-            visited[new_room.id][reverse_dir[next_dir]] = current_room.id
+            visited[new_room.id][reverse_dir[next_dir]] = current_room
         next_dir = find_next_dir(new_room, visited)
         current_room = new_room
     return path
 
-world.loadGraph(roomGraph2)
+def find_next_room(visited):
+    current_room = player.currentRoom
+    queue = Queue()
+    visited_rooms = set()
+    queue.enqueue([(None, current_room)])
+    while queue.size() > 0:
+        path = queue.dequeue()
+        room = path[-1][1]
+
+        new_dir = find_next_dir(room, visited)
+
+        if new_dir is not None:
+            traversal_path = []
+            for pair in path:
+                if pair[0] is not None:
+                    traversal_path.append(pair[0])
+            return (traversal_path, path[-1][1])
+
+        if room not in visited_rooms:
+            visited_rooms.add(room)
+            directions = visited[room.id]
+            for direction in directions:
+                current_path = path[:]
+                current_path.append((direction, directions[direction]))
+                queue.enqueue(current_path)
+    return (None, None)
+
+
+world.loadGraph(roomGraph5)
 world.printRooms()
 player = Player("Name", world.startingRoom)
 
@@ -95,23 +122,32 @@ reverse_dir = {'n': 's', 's': 'n', 'e': 'w', 'w': 'e'}
 visited = {}
 starting_room = world.startingRoom
 current_room = starting_room
-traversalPath = get_path_to_deadend(current_room, visited)
-print(f"visited: {visited}")
-print(f"Current path: {traversalPath}")
+
+while current_room is not None:
+    traversalPath += get_path_to_deadend(current_room, visited)
+
+    # Use DFS to get the next route
+    next_room_path, current_room = find_next_room(visited)
+    if next_room_path is not None:
+        traversalPath += next_room_path
+        player.currentRoom = current_room
+
+# print(f"Traversal path: {traversalPath}")
+# print(f"length of path: {len(traversalPath)}")
 
 # TRAVERSAL TEST
-# visited_rooms = set()
-# player.currentRoom = world.startingRoom
-# visited_rooms.add(player.currentRoom)
-# for move in traversalPath:
-#     player.travel(move)
-#     visited_rooms.add(player.currentRoom)
+visited_rooms = set()
+player.currentRoom = world.startingRoom
+visited_rooms.add(player.currentRoom)
+for move in traversalPath:
+    player.travel(move)
+    visited_rooms.add(player.currentRoom)
 
-# if len(visited_rooms) == len(roomGraph2):
-#     print(f"TESTS PASSED: {len(traversalPath)} moves, {len(visited_rooms)} rooms visited")
-# else:
-#     print("TESTS FAILED: INCOMPLETE TRAVERSAL")
-#     print(f"{len(roomGraph2) - len(visited_rooms)} unvisited rooms")
+if len(visited_rooms) == len(roomGraph5):
+    print(f"TESTS PASSED: {len(traversalPath)} moves, {len(visited_rooms)} rooms visited")
+else:
+    print("TESTS FAILED: INCOMPLETE TRAVERSAL")
+    print(f"{len(roomGraph5) - len(visited_rooms)} unvisited rooms")
 
 
 
