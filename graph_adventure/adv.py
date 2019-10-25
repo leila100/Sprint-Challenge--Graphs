@@ -107,26 +107,29 @@ def find_next_room(visited):
 
 world.loadGraph(roomGraph5)
 # world.printRooms()
-player = Player("Name", world.startingRoom)
 
 
 # FILL THIS IN
-# traversalPath = ['n', 's']
-traversalPath = []
-reverse_dir = {'n': 's', 's': 'n', 'e': 'w', 'w': 'e'}
-visited = {}
-starting_room = world.startingRoom
-current_room = starting_room
+min_path = 2000
+while True:
+    player = Player("Name", world.startingRoom)
+    traversalPath = []
+    reverse_dir = {'n': 's', 's': 'n', 'e': 'w', 'w': 'e'}
+    visited = {}
+    starting_room = world.startingRoom
+    current_room = starting_room
 
-while current_room is not None:
-    traversalPath += get_path_to_deadend(current_room, visited)
+    while current_room is not None:
+        traversalPath += get_path_to_deadend(current_room, visited)
 
-    # Use DFS to get the next route
-    next_room_path, current_room = find_next_room(visited)
-    if next_room_path is not None:
-        traversalPath += next_room_path
-        player.currentRoom = current_room
-
+        # Use DFS to get the next route
+        next_room_path, current_room = find_next_room(visited)
+        if next_room_path is not None:
+            traversalPath += next_room_path
+            player.currentRoom = current_room
+    if len(traversalPath) < min_path:
+        min_path = len(traversalPath)
+        print(f"minimum path so far: {min_path}")
 
 # TRAVERSAL TEST
 visited_rooms = set()
