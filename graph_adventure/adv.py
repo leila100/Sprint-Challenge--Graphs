@@ -50,11 +50,6 @@ def find_next_dir(current_room, visited):
                 possible_dirs.append(direction)
         if len(possible_dirs) != 0:
             travel_dir = random.choice(possible_dirs)
-    # # If there's none, it's a dead end
-    # if travel_dir is None:
-    #     print(f"Reached a dead end. current Room: {current_room.id}")
-    # else:
-    #     print(f"from {current_room.id}, next direction is: {travel_dir}")
     return travel_dir
 
 def get_path_to_deadend(current_room, visited):
@@ -111,7 +106,7 @@ def find_next_room(visited):
 
 
 world.loadGraph(roomGraph5)
-world.printRooms()
+# world.printRooms()
 player = Player("Name", world.startingRoom)
 
 
@@ -132,8 +127,6 @@ while current_room is not None:
         traversalPath += next_room_path
         player.currentRoom = current_room
 
-# print(f"Traversal path: {traversalPath}")
-# print(f"length of path: {len(traversalPath)}")
 
 # TRAVERSAL TEST
 visited_rooms = set()
